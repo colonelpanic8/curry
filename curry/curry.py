@@ -145,9 +145,12 @@ class curry(object):
         self.__doc__ = function.__doc__
 
     def __call__(self, *args, **kwargs):
-        new_args = self.args + args
+        new_args = self.args
         new_kwargs = self.kwargs.copy()
-        new_kwargs.update(kwargs)
+        if args:
+            new_args = self.args + args
+        if kwargs:
+            new_kwargs.update(kwargs)
         if self.evaluation_checker(*new_args, **new_kwargs):
             return self.function(*new_args, **new_kwargs)
         else:
