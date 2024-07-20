@@ -1,5 +1,7 @@
 import inspect
 
+from typing import Callable, Any
+
 
 class curry(object):
     """Curry a function or method.
@@ -87,35 +89,35 @@ class curry(object):
     """
 
     @staticmethod
-    def arity_evaluation_checker(function):
+    def arity_evaluation_checker(function: Callable[..., Any]) -> Callable[..., bool]:
         """Build an evaluation checker that will return True when it is
         guaranteed that all positional arguments have been accounted for.
         """
         is_class = inspect.isclass(function)
         if is_class:
             function = function.__init__
-        function_info = inspect.getargspec(function)
-        function_args = function_info.args
+
+        signature = inspect.signature(function)
+        parameters = list(signature.parameters.values())
+
         if is_class:
             # This is to handle the fact that self will get passed in
             # automatically.
-            function_args = function_args[1:]
+            parameters = parameters[1:]
 
-        def evaluation_checker(*args, **kwargs):
-            kwarg_keys = set(kwargs.keys())
-            if function_info.keywords is None:
-                acceptable_kwargs = function_args[len(args):]
-                # Make sure that we didn't get an argument we can't handle.
-                if not kwarg_keys.issubset(acceptable_kwargs):
-                    TypeError("Unrecognized Arguments: {0}".format(
-                        [key for key in kwarg_keys
-                         if key not in acceptable_kwargs]
-                    ))
+        def evaluation_checker(*args: Any, **kwargs: Any) -> bool:
+            if is_class:
+                args = (None,) + args
+            bound_arguments = signature.bind_partial(*args, **kwargs)
+            for param in parameters:
+                if param.name not in bound_arguments.arguments:
+                    if (
+                            param.default == inspect.Parameter.empty and
+                            param.kind != inspect.Parameter.VAR_POSITIONAL
+                    ):
+                        return False
+            return True
 
-            needed_args = function_args[len(args):]
-            if function_info.defaults:
-                needed_args = needed_args[:-len(function_info.defaults)]
-            return not needed_args or kwarg_keys.issuperset(needed_args)
         return evaluation_checker
 
     @staticmethod
@@ -134,8 +136,7 @@ class curry(object):
                              making this decision.
         """
         self.function = function
-        self.evaluation_checker = (evaluation_checker or
-                                   self.arity_evaluation_checker(function))
+        self.evaluation_checker = (evaluation_checker or self.arity_evaluation_checker(function))
         if cache_name is True:
             cache_name = self.function.__name__
         self.cache_name = cache_name
@@ -170,8 +171,11 @@ class curry(object):
         return bound
 
     def __repr__(self):
-        return '<{0}.{1} of {2}>'.format(__name__, type(self).__name__,
-                                         repr(self.function))
+        return '<{0}.{1} of {2}>'.format(
+            __name__,
+            type(self).__name__,
+            repr(self.function)
+        )
 
 
 curry = curry(curry)
