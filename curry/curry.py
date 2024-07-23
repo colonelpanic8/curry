@@ -112,8 +112,8 @@ class curry(object):
             for param in parameters:
                 if param.name not in bound_arguments.arguments:
                     if (
-                            param.default == inspect.Parameter.empty and
-                            param.kind != inspect.Parameter.VAR_POSITIONAL
+                        param.default == inspect.Parameter.empty
+                        and param.kind != inspect.Parameter.VAR_POSITIONAL
                     ):
                         return False
             return True
@@ -124,10 +124,12 @@ class curry(object):
     def count_evaluation_checker(count):
         def function(*args, **kwargs):
             return len(args) >= count
+
         return function
 
-    def __init__(self, function, evaluation_checker=None,
-                 args=(), kwargs=None, cache_name=False):
+    def __init__(
+        self, function, evaluation_checker=None, args=(), kwargs=None, cache_name=False
+    ):
         """
         :param function: The function to curry.
         :evaluation checker: A function that controls when the function will
@@ -136,7 +138,9 @@ class curry(object):
                              making this decision.
         """
         self.function = function
-        self.evaluation_checker = (evaluation_checker or self.arity_evaluation_checker(function))
+        self.evaluation_checker = evaluation_checker or self.arity_evaluation_checker(
+            function
+        )
         if cache_name is True:
             cache_name = self.function.__name__
         self.cache_name = cache_name
@@ -155,14 +159,19 @@ class curry(object):
         if self.evaluation_checker(*new_args, **new_kwargs):
             return self.function(*new_args, **new_kwargs)
         else:
-            return type(self)(self.function, self.evaluation_checker,
-                              new_args, new_kwargs)
+            return type(self)(
+                self.function, self.evaluation_checker, new_args, new_kwargs
+            )
 
     def __get__(self, obj, obj_type):
         if obj is None:
             return self
-        bound = type(self)(self.function, self.evaluation_checker,
-                           args=self.args + (obj,), kwargs=self.kwargs)
+        bound = type(self)(
+            self.function,
+            self.evaluation_checker,
+            args=self.args + (obj,),
+            kwargs=self.kwargs,
+        )
         # This caches the new partial application of the function on
         # the instance. Its not clear that this is a good idea which
         # is why it's not enabled by default it for now.
@@ -171,10 +180,8 @@ class curry(object):
         return bound
 
     def __repr__(self):
-        return '<{0}.{1} of {2}>'.format(
-            __name__,
-            type(self).__name__,
-            repr(self.function)
+        return "<{0}.{1} of {2}>".format(
+            __name__, type(self).__name__, repr(self.function)
         )
 
 

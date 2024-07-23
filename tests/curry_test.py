@@ -7,7 +7,6 @@ def crazy(a, self):
 
 
 class HasCurryMethods(object):
-
     def __init__(self, starter):
         self.starter = starter
         self.on_instance = crazy
@@ -29,14 +28,13 @@ def test_curry_method_behavior():
 def test_curry_with_kwargs_taking_function():
     @curry
     def kwarg_taking_function(arg, **kwargs):
-        kwargs['k'] = arg
+        kwargs["k"] = arg
         return kwargs
 
-    assert kwarg_taking_function(a=14)(2) == {'k': 2, 'a': 14}
+    assert kwarg_taking_function(a=14)(2) == {"k": 2, "a": 14}
 
 
 def test_curry_cache_behavior_problems():
-
     class CurryCacheTest(object):
         def func(self, a=1):
             return 2 + a
@@ -59,7 +57,7 @@ def test_curry_cache_behavior_problems():
         def func(self, a=1):
             return 2 + a
 
-        test = curry(func, cache_name='test')
+        test = curry(func, cache_name="test")
 
         @curry(cache_name=True)
         def func(self):
